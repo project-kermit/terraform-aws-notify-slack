@@ -36,6 +36,18 @@ def cloudwatch_notification(message, region):
         }
 
 
+def rds_notification(message):
+    return {
+            "color": 'warning',
+            "fallback": "{} incurred a {}".format(message['Source ID'], message['Event Message']),
+            "fields": [
+                { "title": "Database", "value": message['Source ID'], "short": True },
+                { "title": "Message", "value": message['Event Message'], "short": True},
+                { "title": "Link to DB", "value": message['Identifier Link'], "short": False },
+                { "title": "Message Meaning", "value": message['Event ID'], "short": False },
+            ]
+        }
+
 def default_notification(message):
     return {
             "fallback": "A new message",
@@ -62,6 +74,10 @@ def notify_slack(message, region):
     if "AlarmName" in message:
         notification = cloudwatch_notification(message, region)
         payload['text'] = "AWS CloudWatch notification - " + message["AlarmName"]
+        payload['attachments'].append(notification)
+    elif "Event Source" in message and message["Event Source"] == "db-instance":
+        notification = rds_notification(message)
+        payload['text'] = "AWS RDS notification - " + message["Event Message"]
         payload['attachments'].append(notification)
     else:
         payload['text'] = "AWS notification"
