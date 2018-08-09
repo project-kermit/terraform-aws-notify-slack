@@ -1,8 +1,3 @@
-output "this_slack_topic_arn" {
-  description = "The ARN of the SNS topic from which messages will be sent to Slack"
-  value       = "${local.sns_topic_arn}"
-}
-
 output "lambda_iam_role_arn" {
   description = "The ARN of the IAM role used by Lambda function"
   value       = "${element(concat(aws_iam_role.lambda.*.arn, list("")), 0)}"

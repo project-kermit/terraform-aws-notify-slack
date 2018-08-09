@@ -3,11 +3,6 @@ variable "create" {
   default     = true
 }
 
-variable "create_sns_topic" {
-  description = "Whether to create new SNS topic"
-  default     = true
-}
-
 variable "create_with_kms_key" {
   description = "Whether to create resources with KMS encryption"
   default     = false
@@ -18,8 +13,9 @@ variable "lambda_function_name" {
   default     = "notify_slack"
 }
 
-variable "sns_topic_name" {
-  description = "The name of the SNS topic to create"
+variable "sns_topic_arns" {
+  description = "The arns of the SNS topic to subscribe to"
+  type = "list"
 }
 
 variable "slack_webhook_url" {
