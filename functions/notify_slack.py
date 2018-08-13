@@ -2,6 +2,7 @@ from __future__ import print_function
 import os, boto3, json, base64
 import urllib.request, urllib.parse
 import logging
+from email.utils import parsedate_tz, mktime_tz
 
 
 # Decrypt encrypted URL with KMS
@@ -48,6 +49,38 @@ def rds_notification(message):
             ]
         }
 
+def codedeploy_notification(message):
+    statuses = {'CREATED': '',
+                'SUCCEEDED': 'good',
+                'STOPPED': 'warning',
+                'FAILED': 'danger',
+                }
+
+    fields = [
+            {'title': 'Deployment Group', 'value': message['deploymentGroupName'], 'short': True},
+            {'title': 'Action', 'value': message['status'].title(), 'short': True},
+            {'title': 'Create Time', 'value': '<!date^{}^{{date_short}} {{time}}|{}>'.format(mktime_tz(parsedate_tz(message['createTime'])), message['createTime']), 'short': True}
+            ]
+
+    if 'completeTime' in message:
+        fields.append({'title': 'Complete Time', 'value': '<!date^{}^{{date_short}} {{time}}|{}>'.format(mktime_tz(parsedate_tz(message['completeTime'])), message['completeTime']), 'short': True})
+
+    if 'deploymentOverview' in message:
+        do = json.loads(message['deploymentOverview'])
+        fields.append({'title': 'Deployment Overview', 'value': ' — '.join(  k + ": " + str(v) for (k, v) in do.items()), 'short': False})
+
+    return {
+            'color': statuses.get(message['status'], ''),
+            'fallback': 'Deployment {} for {} at {} until {}'.format(
+                message['status'].title(),
+                message['deploymentGroupName'],
+                message['createTime'],
+                message['completeTime'],
+                ),
+            'fields': fields,
+        }
+
+
 def default_notification(message):
     return {
             "fallback": "A new message",
@@ -78,6 +111,10 @@ def notify_slack(message, region):
     elif "Event Source" in message and message["Event Source"] == "db-instance":
         notification = rds_notification(message)
         payload['text'] = "AWS RDS notification - " + message["Event Message"]
+        payload['attachments'].append(notification)
+    elif 'deploymentId' in message:
+        notification = codedeploy_notification(message)
+        payload['text'] = "AWS CodeDeploy notification"
         payload['attachments'].append(notification)
     else:
         payload['text'] = "AWS notification"
