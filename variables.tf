@@ -18,6 +18,10 @@ variable "sns_topic_arns" {
   type = "list"
 }
 
+variable "sns_topic_count" {
+  description = "Count of sns topics in sns_topic_arns, see https://github.com/hashicorp/terraform/issues/10857"
+}
+
 variable "slack_webhook_url" {
   description = "The URL of Slack webhook"
 }

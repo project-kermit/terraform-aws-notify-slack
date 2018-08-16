@@ -1,5 +1,5 @@
 resource "aws_sns_topic_subscription" "sns_notify_slack" {
-  count = "${var.create * length(var.sns_topic_arns)}"
+  count = "${var.create * var.sns_topic_count}"
 
   topic_arn = "${var.sns_topic_arns[count.index]}"
   protocol  = "lambda"
@@ -7,7 +7,7 @@ resource "aws_sns_topic_subscription" "sns_notify_slack" {
 }
 
 resource "aws_lambda_permission" "sns_notify_slack" {
-  count = "${var.create * length(var.sns_topic_arns)}"
+  count = "${var.create * var.sns_topic_count}"
 
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
