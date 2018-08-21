@@ -62,7 +62,7 @@ def codedeploy_notification(message):
             {'title': 'Create Time', 'value': '<!date^{}^{{date_short}} {{time}}|{}>'.format(mktime_tz(parsedate_tz(message['createTime'])), message['createTime']), 'short': True}
             ]
 
-    if 'completeTime' in message:
+    if message.get('completeTime'):
         fields.append({'title': 'Complete Time', 'value': '<!date^{}^{{date_short}} {{time}}|{}>'.format(mktime_tz(parsedate_tz(message['completeTime'])), message['completeTime']), 'short': True})
 
     if 'deploymentOverview' in message:
