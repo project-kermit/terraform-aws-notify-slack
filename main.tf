@@ -16,6 +16,24 @@ resource "aws_lambda_permission" "sns_notify_slack" {
   source_arn    = "${var.sns_topic_arns[count.index]}"
 }
 
+resource "aws_sns_topic_subscription" "sns_notify_slack_fallback" {
+  count = "${var.create_fallback}"
+
+  topic_arn = "${var.fallback_sns}"
+  protocol  = "lambda"
+  endpoint  = "${aws_lambda_function.notify_slack.0.arn}"
+}
+
+resource "aws_lambda_permission" "sns_notify_slack_fallback" {
+  count = "${var.create_fallback}"
+
+  statement_id  = "AllowExecutionFromSNSFallback"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.notify_slack.0.function_name}"
+  principal     = "sns.amazonaws.com"
+  source_arn    = "${var.fallback_sns}"
+}
+
 data "null_data_source" "lambda_file" {
   inputs {
     filename = "${substr("${path.module}/functions/notify_slack.py", length(path.cwd) + 1, -1)}"

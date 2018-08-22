@@ -43,3 +43,13 @@ variable "kms_key_arn" {
   description = "ARN of the KMS key used for decrypting slack webhook url"
   default     = ""
 }
+
+variable "fallback_sns" {
+  description = "Fallback SNS to alarm to upon lambda failure. The lambda will automatically subscribe to this also."
+  default = ""
+}
+
+variable "create_fallback" {
+  description = "Whether the fallback is provided, use 1 to enable"
+  default = 0
+}

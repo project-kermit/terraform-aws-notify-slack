@@ -32,3 +32,8 @@ output "notify_slack_lambda_function_version" {
   description = "Latest published version of your Lambda function"
   value       = "${element(concat(aws_lambda_function.notify_slack.*.version, list("")), 0)}"
 }
+
+output "fallback_claims" {
+  description = "SNS topic claims for fallback"
+  value = ["alarms"]
+}
