@@ -3,6 +3,7 @@ import os, boto3, json, base64
 import urllib.request, urllib.parse
 import logging
 from email.utils import parsedate_tz, mktime_tz
+from datetime import datetime, timezone, timedelta
 
 
 # Decrypt encrypted URL with KMS
@@ -49,7 +50,7 @@ def rds_notification(message):
             ]
         }
 
-def codedeploy_notification(message):
+def codedeploy_notification(message, region, log_group):
     statuses = {'CREATED': '',
                 'SUCCEEDED': 'good',
                 'STOPPED': 'warning',
@@ -68,6 +69,16 @@ def codedeploy_notification(message):
     if 'deploymentOverview' in message:
         do = json.loads(message['deploymentOverview'])
         fields.append({'title': 'Deployment Overview', 'value': ' — '.join(  k + ": " + str(v) for (k, v) in do.items()), 'short': False})
+        
+    now = datetime.now(timezone.utc)
+    ten_mins_ago = now - timedelta(minutes = 10)
+    ten_mins_ahead = now + timedelta(minutes = 10)
+    log_filter = "{$.PRIORITY=\"3\"}"
+    
+    if message.get('completeTime'):
+        fields.append({"title": "Link to Logs",
+                       "value": "https://" + region + ".console.aws.amazon.com/cloudwatch/home?region=" + region + "#logEventViewer:group="+ log_group + ";filter=" + urllib.parse.quote_plus(log_filter) + ";start=" + ten_mins_ago.astimezone().isoformat() + ";end=" + ten_mins_ahead.astimezone().isoformat(),
+                       "short": False})
 
     return {
             'color': statuses.get(message['status'], ''),
@@ -98,6 +109,8 @@ def notify_slack(message, region):
     slack_username = os.environ['SLACK_USERNAME']
     slack_emoji = os.environ['SLACK_EMOJI']
 
+    log_group = os.environ['LOG_GROUP']
+
     payload = {
         "channel": slack_channel,
         "username": slack_username,
@@ -113,7 +126,7 @@ def notify_slack(message, region):
         payload['text'] = "AWS RDS notification - " + message["Event Message"]
         payload['attachments'].append(notification)
     elif 'deploymentId' in message:
-        notification = codedeploy_notification(message)
+        notification = codedeploy_notification(message, region, log_group)
         payload['text'] = "AWS CodeDeploy notification"
         payload['attachments'].append(notification)
     else:

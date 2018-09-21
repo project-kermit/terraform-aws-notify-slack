@@ -39,6 +39,11 @@ variable "slack_emoji" {
   default     = ":aws:"
 }
 
+variable "log_group" {
+  description = "Some alerts will include a link to cloudwatch logs, the log_group specified here will be used for filtering"
+  default     = "rock"
+}
+
 variable "kms_key_arn" {
   description = "ARN of the KMS key used for decrypting slack webhook url"
   default     = ""
