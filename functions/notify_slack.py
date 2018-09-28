@@ -98,6 +98,27 @@ def default_notification(message):
             "fields": [{"title": "Message", "value": json.dumps(message), "short": False}]
         }
 
+def ellipsis(s, l):
+    s = s or ""
+    return (s[:l] + '...') if len(s) > l else s
+
+def log_error(message):
+    error = message['LogError']
+    return {
+            "color": "#f44280",
+            "fallback": "Log error {} - {}".format(error['EXN_NAME'], error['EXN_MESSAGE']),
+            "fields": [
+                {
+                    "title": "LOG ERROR",
+                    "value":
+                        ellipsis(error['EXN_MESSAGE'], 100)
+                            + "\n"
+                            + ellipsis(error['MESSAGE'], 100)
+                            + "\n"
+                            + ellipsis(error['EXN_STACKTRACE'], 500)
+                }
+            ]
+        }
 
 # Send a message to a slack channel
 def notify_slack(message, region):
@@ -128,6 +149,9 @@ def notify_slack(message, region):
     elif 'deploymentId' in message:
         notification = codedeploy_notification(message, region, log_group)
         payload['text'] = "AWS CodeDeploy notification"
+        payload['attachments'].append(notification)
+    elif 'LogError' in message:
+        notification = log_error(message)
         payload['attachments'].append(notification)
     else:
         payload['text'] = "AWS notification"
