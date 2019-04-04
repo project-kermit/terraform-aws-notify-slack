@@ -56,7 +56,8 @@ def glue_notification(message, region, log_group):
             "fallback": "Glue job {} has a status of ".format(message['Job'], message['Status']),
             "fields": [
                 { "title": "Job", "value": message['Job'], "short": True },
-                { "title": "Message", "value": message['Message'], "short": True},
+                { "title": "Rows Affected", "value": message['Rows'], "short": True},
+                { "title": "Finshed Date", "value": message['Date'], "short": True},
                 { "title": "Environment", "value": log_group, "short": True}
             ]
         }
