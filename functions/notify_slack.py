@@ -59,7 +59,8 @@ def glue_notification(message, region, log_group):
                 { "title": "Job", "value": message['Job'], "short": True },
                 { "title": "Rows Affected", "value": message['Rows'], "short": True},
                 { "title": "Finshed Date", "value": message['Date'], "short": True},
-                { "title": "Environment", "value": log_group, "short": True}
+                { "title": "Environment", "value": log_group, "short": True},
+                { "title": "Glue Console", "value": "https://" + region + ".console.aws.amazon.com/glue/home?region=" + region + "#etl:tab=jobs", "short": False}
             ]
         }
 
