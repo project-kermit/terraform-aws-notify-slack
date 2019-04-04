@@ -50,6 +50,17 @@ def rds_notification(message):
             ]
         }
 
+def glue_notification(message, region, log_group):
+    return {
+            "color": message['Status'],
+            "fallback": "Glue job {} has a status of ".format(message['Job'], message['Status']),
+            "fields": [
+                { "title": "Job", "value": message['Job'], "short": True },
+                { "title": "Message", "value": message['Message'], "short": True},
+                { "title": "Environment", "value": log_group, "short": True}
+            ]
+        }
+
 def codedeploy_notification(message, region, log_group):
     statuses = {'CREATED': '',
                 'SUCCEEDED': 'good',
@@ -128,6 +139,10 @@ def notify_slack(message, region):
     elif 'deploymentId' in message:
         notification = codedeploy_notification(message, region, log_group)
         payload['text'] = "AWS CodeDeploy notification"
+        payload['attachments'].append(notification)
+    if "Job" in message:
+        notification = glue_notification(message, region, log_group)
+        payload['text'] = "AWS Glue notification"
         payload['attachments'].append(notification)
     else:
         payload['text'] = "AWS notification"
