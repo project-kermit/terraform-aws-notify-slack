@@ -143,7 +143,7 @@ def notify_slack(message, region):
         notification = codedeploy_notification(message, region, log_group)
         payload['text'] = "AWS CodeDeploy notification"
         payload['attachments'].append(notification)
-    if "Job" in message:
+    elif "Job" in message:
         notification = glue_notification(message, region, log_group)
         payload['text'] = "AWS Glue notification"
         payload['attachments'].append(notification)
