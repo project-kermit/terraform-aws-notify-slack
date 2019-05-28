@@ -1,5 +1,5 @@
 resource "aws_sns_topic_subscription" "sns_notify_slack" {
-  count = "${var.create * var.sns_topic_count}"
+  count = "${(var.create == true ? 1 : 0) * var.sns_topic_count}"
 
   topic_arn = "${var.sns_topic_arns[count.index]}"
   protocol  = "lambda"
@@ -7,7 +7,7 @@ resource "aws_sns_topic_subscription" "sns_notify_slack" {
 }
 
 resource "aws_lambda_permission" "sns_notify_slack" {
-  count = "${var.create * var.sns_topic_count}"
+  count = "${(var.create == true ? 1 : 0) * var.sns_topic_count}"
 
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
@@ -35,19 +35,19 @@ resource "aws_lambda_permission" "sns_notify_slack_fallback" {
 }
 
 data "null_data_source" "lambda_file" {
-  inputs {
-    filename = "${substr("${path.module}/functions/notify_slack.py", length(path.cwd) + 1, -1)}"
+  inputs = {
+    filename = "${path.module}/functions/notify_slack.py"
   }
 }
 
 data "null_data_source" "lambda_archive" {
-  inputs {
-    filename = "${substr("${path.module}/functions/notify_slack.zip", length(path.cwd) + 1, -1)}"
+  inputs = {
+    filename = "${path.module}/functions/notify_slack.zip"
   }
 }
 
 data "archive_file" "notify_slack" {
-  count = "${var.create}"
+  count = "${var.create == true ? 1 : 0}"
 
   type        = "zip"
   source_file = "${data.null_data_source.lambda_file.outputs.filename}"
@@ -55,13 +55,13 @@ data "archive_file" "notify_slack" {
 }
 
 resource "aws_lambda_function" "notify_slack" {
-  count = "${var.create}"
+  count = "${var.create == true ? 1 : 0}"
 
   filename = "${data.archive_file.notify_slack.0.output_path}"
 
   function_name = "${var.lambda_function_name}"
 
-  role             = "${aws_iam_role.lambda.arn}"
+  role             = "${aws_iam_role.lambda[0].arn}"
   handler          = "notify_slack.lambda_handler"
   source_code_hash = "${data.archive_file.notify_slack.0.output_base64sha256}"
   runtime          = "python3.6"
